@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Operation: Signal & Lore • Gamified ELA Foundations</title>
+<style>
+:root {
+  --bg-dark: #0f172a;
+  --panel-bg: #1e293b;
+  --panel-border: #334155;
+  --accent-gold: #f59e0b;
+  --accent-teal: #06b6d4;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --card-bg: #0f172a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg-dark);
+  color: var(--text-main);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
+
+/* GAMIFIED HUD HEADER */
+header {
+  background: #090d16;
+  border-bottom: 3px solid var(--accent-teal);
+  padding: 16px max(20px, calc((100vw - 1000px)/2));
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.hud-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.game-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--accent-teal);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(255,255,255,0.05);
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--panel-border);
+}
+
+.stat-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.stat-label { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+
+.xp-bar-container {
+  margin-top: 10px;
+  background: #1e293b;
+  border-radius: 8px;
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  position: relative;
+}
+
+.xp-bar-fill {
+  background: linear-gradient(90deg, var(--accent-teal), var(--accent-gold));
+  height: 100%;
+  width: 0%;
+  transition: width 0.4s ease;
+}
+
+/* MAIN CONTENT LAYOUT */
+main {
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 0 16px;
+}
+
+.daypicker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.daypicker button {
+  background: #1e293b;
+  color: var(--text-muted);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.daypicker button:hover {
+  border-color: var(--accent-teal);
+  color: var(--text-main);
+}
+
+.daypicker button.active {
+  background: var(--accent-teal);
+  color: #000;
+  border-color: var(--accent-teal);
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+nav button {
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--panel-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+nav button:hover { background: #334155; color: white; }
+nav button.current {
+  background: var(--accent-gold);
+  color: #000;
+  border-color: var(--accent-gold);
+  font-weight: 800;
+}
+
+/* PANEL CARD */
+.panel {
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-border);
+  border-radius: 16px;
+  padding: clamp(20px, 4vw, 36px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  margin-bottom: 20px;
+}
+
+h2 { color: var(--accent-gold); margin-top: 0; line-height: 1.3; font-size: 1.6rem; }
+h3 { color: var(--accent-teal); margin-top: 24px; font-size: 1.25rem; }
+
+/* QUEST CARDS & CALLOUTS */
+.callout {
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 4px solid var(--accent-gold);
+  padding: 16px 20px;
+  border-radius: 0 10px 10px 0;
+  margin: 20px 0;
+}
+
+.passage {
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  padding: 20px;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 800;
+  color: #000;
+  background: var(--accent-teal);
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+/* QUESTIONS & OPTIONS */
+.question {
+  border-top: 1px solid var(--panel-border);
+  margin-top: 24px;
+  padding-top: 20px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--panel-border);
+  background: var(--card-bg);
+  border-radius: 8px;
+  margin: 8px 0;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.option:hover {
+  border-color: var(--accent-teal);
+  background: rgba(6, 182, 212, 0.05);
+}
+
+.option:has(input:checked) {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: var(--accent-teal);
+}
+
+input[type=radio], input[type=checkbox] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-teal);
+  cursor: pointer;
+}
+
+/* INPUTS & TEXTAREAS */
+input[type=text], textarea {
+  width: 100%;
+  padding: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 1rem;
+  margin-top: 6px;
+}
+
+input[type=text]:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent-teal);
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.3);
+}
+
+label.writing {
+  display: block;
+  font-weight: 600;
+  margin: 20px 0;
+  color: var(--accent-gold);
+}
+
+/* BUTTONS */
+button.action-btn, button.check {
+  font-family: inherit;
+  font-weight: 700;
+  background: var(--accent-teal);
+  color: #000;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 10px 6px 10px 0;
+}
+
+button.action-btn:hover, button.check:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* FEEDBACK & TABLES */
+.feedback {
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: none;
+  margin-top: 12px;
+  font-size: 0.95rem;
+}
+
+.feedback.correct-fb {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid var(--accent-green);
+  color: #6ee7b7;
+}
+
+.feedback.incorrect-fb {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--accent-red);
+  color: #fca5a5;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 15px;
+}
+
+th, td {
+  padding: 10px 14px;
+  text-align: left;
+  border: 1px solid var(--panel-border);
+}
+
+th { background: rgba(255,255,255,0.05); color: var(--accent-teal); }
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.dailyreport, #report {
+  white-space: pre-wrap;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  padding: 18px;
+  margin-top: 20px;
+  border-radius: 8px;
+  font-family: monospace;
+  color: var(--accent-gold);
+}
+
+.dailyreport:empty, #report:empty { display: none; }
+
+@media(max-width: 600px) {
+  .hud-top { flex-direction: column; align-items: flex-start; }
+  .hud-stats { width: 100%; justify-content: space-between; }
+  td, th { padding: 6px; font-size: 13px; }
+}
+
+@media print {
+  header, nav, .footer, .daypicker, button { display: none !important; }
+  body { background: white; color: black; }
+  .panel { border: none; box-shadow: none; padding: 0; }
+  #report, .dailyreport { color: black; background: white; border: 1px solid #ccc; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hud-top">
+    <div class="game-title">⚡ Operation: Signal & Lore</div>
+    <div class="hud-stats">
+      <div class="stat-box"><span class="stat-label">Rank:</span> <span id="rank-display" style="color:var(--accent-gold)">Cadet</span></div>
+      <div class="stat-box"><span class="stat-label">XP:</span> <span id="xp-display" style="color:var(--accent-teal)">0</span></div>
+      <div class="stat-box"><span class="stat-label">Badges:</span> <span id="badge-display">🛡️</span></div>
+    </div>
+  </div>
+  <div class="xp-bar-container" title="Campaign Progress">
+    <div class="xp-bar-fill" id="xp-bar"></div>
+  </div>
+</header>
+
+<main>
+  <div class="daypicker" aria-label="Select Mission Phase">
+    <button data-start="0" class="active">Mission 1 • Codebreakers</button>
+    <button data-start="4">Mission 2 • Archive Guild</button>
+    <button data-start="8">Mission 3 • Analytics Hub</button>
+  </div>
+
+  <nav id="nav" aria-label="Mission Sectors"></nav>
+
+  <article id="panel" class="panel"></article>
+
+  <div class="footer">
+    <button id="back" class="action-btn">← Previous Sector</button>
+    <button id="next" class="action-btn">Next Sector →</button>
+  </div>
+</main>
+
+<script>
+// SFX ENGINE (Web Audio API)
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); }
+
+function playSound(type) {
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+      osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    } else if (type === 'incorrect') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(110, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    } else if (type === 'levelUp') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.5);
+    }
+  } catch(e) {}
+}
+
+const sections = [
+  {
+    "title": "M1 • Decoder Protocol",
+    "body": "<h2>Mission 1: Codebreakers • Directives</h2><p><b>Target Protocols:</b> ELA.6.V.1.1 and ELA.6.V.1.2[cite: 1]</p><div class=\"callout\"><b>Mission Objectives:</b><ul><li>Decode core command directive terms[cite: 1].</li><li>Deploy academic vocabulary across written transmissions[cite: 1].</li><li>Use Greek/Latin roots & affixes to scan and unlock word meanings[cite: 1].</li></ul></div><p>Follow command briefs carefully. Pause at <b>PRACTICE RUNS</b>[cite: 1]. Execute solo operations at <b>SOLO MISSIONS</b>[cite: 1]. Submit answers to gain XP and level up!</p><label>Agent Codename <input id=\"student\" placeholder=\"Enter operative name...\"></label><h2>DATA SCAN: Command Words</h2><p>Command words unlock exact mission requirements[cite: 1]:</p><table><tr><th>Directive</th><th>Decoded Meaning</th><th>Required Transmission Output</th></tr><tr><td>Analyze</td><td>Examine parts and structural connections[cite: 1].</td><td>Explain how a detail builds overall text meaning[cite: 1].</td></tr><tr><td>Interpret</td><td>Decode underlying meaning[cite: 1].</td><td>Explain what details, visuals, or outcomes suggest[cite: 1].</td></tr><tr><td>Evidence</td><td>Verifiable proof backing a claim[cite: 1].</td><td>Cite a specific quotation, detail, or observation[cite: 1].</td></tr><tr><td>Infer</td><td>Reach a logically supported, unstated conclusion[cite: 1].</td><td>Combine evidence clues with logical reasoning[cite: 1].</td></tr><tr><td>Compare / Contrast</td><td>Identify similarities / differences[cite: 1].</td><td>Evaluate both targets using a shared point of comparison[cite: 1].</td></tr><tr><td>Justify</td><td>Defend a decision or claim[cite: 1].</td><td>Explain precisely why evidence supports your choice[cite: 1].</td></tr></table><div class=\"passage\"><p><i>“Leah held her completed speech behind her back. When her name was called, she asked whether someone else could go first.”</i>[cite: 1]</p><p><b>Diagnostic Scan:</b> I infer Leah may feel nervous[cite: 1]. My evidence is her request to delay speaking despite having a finished draft[cite: 1]. This evidence supports nervousness better than claiming she forgot her work[cite: 1]. I use “may” because feelings aren't stated directly[cite: 1].</p></div><div class=\"callout\"><b>Shield Rule:</b> Don't just point to evidence—explain how it works[cite: 1]!</div><div class=\"question\" data-id=\"q1\" data-answer=\"1\" data-why=\"Analysis examines specific parts to explain their relationship to the text's overall meaning[cite: 1].\"><span class=\"badge\">Task Q1 (+10 XP)</span><h3>What does “analyze how the ending affects the reader’s understanding” require you to do[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q1\" value=\"0\"> Copy the last sentence only[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q1\" value=\"1\"> Explain the relationship between the ending and the text's core meaning[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q1\" value=\"2\"> List the characters without explanation[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q1\" value=\"3\"> State whether you liked the story[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q2\" data-answer=\"2\" data-why=\"This response cites specific evidence and logical inference without making unsupported claims[cite: 1].\"><span class=\"badge\">Task Q2 (+10 XP)</span><h3>Which transmission deploys evidence most effectively[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q2\" value=\"0\"> Leah is nervous because I said so[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q2\" value=\"1\"> Leah is definitely never prepared[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q2\" value=\"2\"> Leah may feel nervous because she asks another student to speak first even though her speech is ready[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q2\" value=\"3\"> Evidence is an eight-letter word[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q3\" data-answer=\"1\" data-why=\"Contrast targets differences on a shared axis: willingness to speak[cite: 1].\"><span class=\"badge\">Task Q3 (+10 XP)</span><h3>Which statement CONTRASTS two operative responses[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q3\" value=\"0\"> Both students completed speeches[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q3\" value=\"1\"> Leah delays speaking, whereas Ren volunteers to start[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q3\" value=\"2\"> Leah and Ren are both students[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q3\" value=\"3\"> Both speeches have introductions[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div>"
+  },
+  {
+    "title": "M1 • Root Scanner",
+    "body": "<h2>DATA SCAN: Word-Part Alchemy</h2><p>Words hold internal clues[cite: 1]. A <b>root</b> contains core meaning; a <b>prefix</b> comes before, and a <b>suffix</b> attaches after[cite: 1].</p><table><tr><th>Component</th><th>Core Meaning</th><th>Example Words</th></tr><tr><td>graph (Greek)</td><td>write / record[cite: 1]</td><td>autograph, biography[cite: 1]</td></tr><tr><td>bio (Greek)</td><td>life[cite: 1]</td><td>biography, biology[cite: 1]</td></tr><tr><td>auto (Greek)</td><td>self[cite: 1]</td><td>autobiography[cite: 1]</td></tr><tr><td>spect (Latin)</td><td>look / see[cite: 1]</td><td>inspect, spectator[cite: 1]</td></tr><tr><td>port (Latin)</td><td>carry[cite: 1]</td><td>transport, portable[cite: 1]</td></tr><tr><td>re- (prefix)</td><td>again / back[cite: 1]</td><td>reread, rebuild[cite: 1]</td></tr><tr><td>pre- (prefix)</td><td>before[cite: 1]</td><td>preview, pretest[cite: 1]</td></tr><tr><td>-able (suffix)</td><td>able to be[cite: 1]</td><td>portable, readable[cite: 1]</td></tr><tr><td>-er / -or (suffix)</td><td>person who performs action[cite: 1]</td><td>reader, spectator[cite: 1]</td></tr></table><div class=\"callout\"><b>3-Step Protocol: Break → Predict → Check</b>[cite: 1]<ol><li>Break words into recognizable parts[cite: 1].</li><li>Predict meaning from isolated components[cite: 1].</li><li>Check context to confirm accurate whole-word fit[cite: 1].</li></ol></div><div class=\"question\" data-id=\"q4\" data-answer=\"1\" data-why=\"Prefix re- means again; context supports reading a second time[cite: 1].\"><span class=\"badge\">Task Q4 (+10 XP)</span><h3>Which meaning best fits: “The students reread the confusing paragraph”[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q4\" value=\"0\"> Read before it is written[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q4\" value=\"1\"> Read again[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q4\" value=\"2\"> Carry the paragraph[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q4\" value=\"3\"> Look away from it[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q5\" data-answer=\"2\" data-why=\"Spect relates to looking/seeing; a spectator is one who watches[cite: 1].\"><span class=\"badge\">Task Q5 (+10 XP)</span><h3>A spectator watches a match. Which root unlocks this meaning[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q5\" value=\"0\"> port: carry[cite: 1]</label><label class=\"option\"><input type=\"radio\" name=\"q5\" value=\"1\"> bio: life[cite: 1]</label><label class=\"option\"><input type=\"radio\" name=\"q5\" value=\"2\"> spect: look / see[cite: 1]</label><label class=\"option\"><input type=\"radio\" name=\"q5\" value=\"3\"> graph: write[cite: 1]</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q6\" data-answer=\"3\" data-why=\"When predictions fail contextual verification, evaluate sentence clues and reference tools[cite: 1].\"><span class=\"badge\">Task Q6 (+10 XP)</span><h3>What is the optimal move when a root prediction fails to fit context[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q6\" value=\"0\"> Force the prediction regardless[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q6\" value=\"1\"> Ignore the word entirely[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q6\" value=\"2\"> Select the longest dictionary definition[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q6\" value=\"3\"> Check context clues and consult a reliable reference[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><label class=\"writing\">SIDE-QUEST (+25 XP): Explain “preview” in “Before reading, we previewed the headings”[cite: 1]. Identify prefix, state meaning, and verify context[cite: 1].<textarea id=\"d1guided\" rows=\"3\" placeholder=\"Write your transmission...\"></textarea></label>"
+  },
+  {
+    "title": "M1 • Field Mission",
+    "body": "<h2>SOLO MISSION: Choosing What Matters</h2><div class=\"passage\"><p><b>[1]</b> Our class planned a portable exhibit about school history[cite: 1]. First, we wanted to gather every photo[cite: 1]. Mrs. Vega asked us to analyze what each photo helped visitors understand[cite: 1]. A picture could be interesting without serving as useful evidence[cite: 1].</p><p><b>[2]</b> I interviewed my grandfather, a former student[cite: 1]. He signed his class photo[cite: 1]. His autograph felt personal, but didn't verify the date[cite: 1]. We needed to inspect school records and compare dates[cite: 1].</p><p><b>[3]</b> Another group found a biography of a former principal[cite: 1]. We used one paragraph explaining why she built a garden[cite: 1]. We reread and paraphrased it in our own words[cite: 1].</p><p><b>[4]</b> At presentation, visitors asked why we left out photos[cite: 1]. We justified our choices by showing how each item supported key history[cite: 1]. It had fewer pictures, but clearer purpose[cite: 1].</p></div><div class=\"question\" data-id=\"q7\" data-answer=\"1\" data-why=\"Analyze requires examining how parts contribute to overall purpose[cite: 1].\"><span class=\"badge\">Task Q7 (+10 XP)</span><h3>What does “analyze” mean in paragraph 1[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q7\" value=\"0\"> Count caption letters[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q7\" value=\"1\"> Examine how photos contribute to visitor understanding[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q7\" value=\"2\"> Pick only colorful pictures[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q7\" value=\"3\"> Carry the exhibit box[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q8\" data-answer=\"0\" data-why=\"Auto = self, graph = writing. Context confirms an autograph is a personal signature[cite: 1].\"><span class=\"badge\">Task Q8 (+10 XP)</span><h3>What is an autograph in this context[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q8\" value=\"0\"> A person's own signature[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q8\" value=\"1\"> A biography written by a stranger[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q8\" value=\"2\"> An unsigned photograph[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q8\" value=\"3\"> A photo carrying case[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q9\" data-answer=\"0,2\" data-why=\"Port = carry (portable); spect = look (inspect)[cite: 1].\"><span class=\"badge\">Task Q9 (Select 2) (+10 XP)</span><h3>Which TWO statements apply root meanings correctly[cite: 1]?</h3><label class=\"option\"><input type=\"checkbox\" name=\"q9\" value=\"0\"> Portable means the exhibit can be carried[cite: 1].</label><label class=\"option\"><input type=\"checkbox\" name=\"q9\" value=\"1\"> Biography means a self-written life story[cite: 1].</label><label class=\"option\"><input type=\"checkbox\" name=\"q9\" value=\"2\"> Inspect involves looking closely[cite: 1].</label><label class=\"option\"><input type=\"checkbox\" name=\"q9\" value=\"3\"> Reread means reading for the first time[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q10\" data-answer=\"0\" data-why=\"Justifying provides sound evidence-backed reasoning[cite: 1].\"><span class=\"badge\">Task Q10 (+10 XP)</span><h3>Which sentence uses “justify” correctly[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q10\" value=\"0\"> We justify selections by explaining how records support exhibit history[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q10\" value=\"1\"> We justify photos by painting them teal[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q10\" value=\"2\"> We justify because reasons aren't needed[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q10\" value=\"3\"> Justify means carrying displays[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><label class=\"writing\">SIDE-QUEST (+25 XP): Explain why the autograph alone wasn't sufficient evidence for the photo date[cite: 1]. Use \"evidence\" and \"compare\" naturally[cite: 1].<textarea id=\"d1apply\" rows=\"3\" placeholder=\"Write transmission...\"></textarea></label>"
+  },
+  {
+    "title": "M1 • Boss Fight",
+    "body": "<h2>BOSS FIGHT: Mission 1 Data Log</h2><div class=\"callout\"><b>Recap Protocol:</b><br>Command terms define task thinking[cite: 1]. Roots unlock unknown codes[cite: 1].<br><b>Break → Predict → Check!</b>[cite: 1]</div><label class=\"writing\">BOSS QUEST: Explain the difference between “analyze” and “justify”[cite: 1]. How does root `port` clarify `portable`[cite: 1]?<textarea id=\"d1exit\" rows=\"4\" placeholder=\"Write your exit submission...\"></textarea></label><h2>Transmit Mission Data</h2><p>Complete all tasks and written responses to submit Mission 1 Log[cite: 1].</p><button class=\"action-btn dayreport\" data-day=\"1\">Generate Log 1</button><button class=\"action-btn daydownload\" data-day=\"1\">Download Log (.txt)</button><button class=\"action-btn dayprint\" data-day=\"1\">Print / Save PDF</button><div class=\"dailyreport\" id=\"dailyreport1\" aria-live=\"polite\"></div>"
+  },
+  {
+    "title": "M2 • Archive Protocols",
+    "body": "<h2>Mission 2: Archive Guild • Directives</h2><p><b>Target Protocols:</b> 6.C.1, 6.R.3, K12.EE.4.1, ELA.6.R.3.2[cite: 1]</p><div class=\"callout\"><b>Mission Objectives:</b><ul><li>Align writing with purpose, audience, and detail[cite: 1].</li><li>Distinguish narrative, explanatory, and argument modes[cite: 1].</li><li>Master high-fidelity paraphrasing[cite: 1].</li><li>Execute collaborative dialogue[cite: 1].</li></ul></div><h2>DATA SCAN: Writing Purpose</h2><table><tr><th>Purpose</th><th>Target Output Requirements</th><th>Sample Plan</th></tr><tr><td>Narrate</td><td>Sequence, detailed descriptions, personal reflection[cite: 1].</td><td>Relate learning to seek group help[cite: 1].</td></tr><tr><td>Explain</td><td>Factual clarity and logical connections[cite: 1].</td><td>Detail how a book swap operates[cite: 1].</td></tr><tr><td>Support / Argue</td><td>Claim, logical reasoning, grounded evidence[cite: 1].</td><td>Defend continuing school book swaps[cite: 1].</td></tr></table><div class=\"question\" data-id=\"q11\" data-answer=\"2\" data-why=\"Process details explain operational mechanisms directly[cite: 1].\"><span class=\"badge\">Task Q11 (+10 XP)</span><h3>Which detail is most relevant to EXPLAINING how a book exchange operates[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q11\" value=\"0\"> The writer's favorite sandwich[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q11\" value=\"1\"> Hallway wall color[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q11\" value=\"2\"> Students bring a book and select another donated title[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q11\" value=\"3\"> Claiming every reader likes the same genre[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q12\" data-answer=\"1\" data-why=\"Revising replaces vague praise with explicit functional impact[cite: 1].\"><span class=\"badge\">Task Q12 (+10 XP)</span><h3>Which revision improves precision for \"The exchange is good\"[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q12\" value=\"0\"> The exchange is really, really good[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q12\" value=\"1\"> The exchange helps usable books reach new readers[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q12\" value=\"2\"> Good is the exchange[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q12\" value=\"3\"> Stuff happens there[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q13\" data-answer=\"0\" data-why=\"Adding logical connectivity improves core meaning and structural revision[cite: 1].\"><span class=\"badge\">Task Q13 (+10 XP)</span><h3>Adding missing reasoning to link ideas represents what action[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q13\" value=\"0\"> Revising meaning and clarity[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q13\" value=\"1\"> Editing surface spelling[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q13\" value=\"2\"> Changing topic randomly[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q13\" value=\"3\"> Removing main purpose[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div>"
+  },
+  {
+    "title": "M2 • Paraphrase Shield",
+    "body": "<h2>DATA SCAN: High-Fidelity Paraphrasing</h2><p>To <b>paraphrase</b>, restate text using your own wording while preserving full original meaning[cite: 1]. Summaries condense wide texts; quotes use exact words[cite: 1].</p><div class=\"callout\"><b>Paraphrase Spell Steps:</b><ol><li>Read for core meaning[cite: 1].</li><li>Look away; restate the idea[cite: 1].</li><li>Verify context: preserve original limits, scope, and facts[cite: 1].</li><li>Attribute source credit[cite: 1].</li></ol></div><div class=\"question\" data-id=\"q14\" data-answer=\"1\" data-why=\"Preserves original scope and context without altering timing or facts[cite: 1].\"><span class=\"badge\">Task Q14 (+10 XP)</span><h3>Which paraphrase accurately preserves: “Volunteers sometimes opened the room before school”[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q14\" value=\"0\"> The room was open all night[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q14\" value=\"1\"> On occasion, volunteers unlocked the room prior to classes starting[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q14\" value=\"2\"> Students opened it after school daily[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q14\" value=\"3\"> No one unlocked the room[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q15\" data-answer=\"2\" data-why=\"Paraphrasing requires original structure while retaining core facts and giving credit[cite: 1].\"><span class=\"badge\">Task Q15 (+10 XP)</span><h3>Which action is required when paraphrasing[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q15\" value=\"0\"> Swap one word and keep all else copied[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q15\" value=\"1\"> Insert unsupported facts[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q15\" value=\"2\"> Preserve precise original meaning and attribute source credit[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q15\" value=\"3\"> Invert original meanings[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><label class=\"writing\">SIDE-QUEST (+25 XP): Paraphrase: “The exchange offered books at no cost, but students could choose only one title each week”[cite: 1]. Retain limits and credit \"Book Exchange lesson\"[cite: 1].<textarea id=\"d2guided\" rows=\"3\" placeholder=\"Write transmission...\"></textarea></label>"
+  },
+  {
+    "title": "M2 • Co-Op Mission",
+    "body": "<h2>CO-OP MISSION: Discussion Table</h2><div class=\"passage\"><h3>Text A: Narrative Log</h3><p><b>[1]</b> I held my old adventure book as I joined line[cite: 1]. The cover was bent, but the story had traveled through three car trips[cite: 1]. I wanted a new book, but hated losing this one[cite: 1].</p><p><b>[2]</b> Sam asked my favorite genre[cite: 1]. A younger student pointed to my book, saying he'd searched everywhere for it[cite: 1]. I handed it over and highlighted my favorite chapter[cite: 1].</p><p><b>[3]</b> Sam handed me a mystery[cite: 1]. As I left, the younger student sat reading my old book[cite: 1]. I hadn't lost a story—I gave someone a new start[cite: 1].</p></div><div class=\"passage\"><h3>Text B: Poetic Log</h3><p>My shelf had held a quiet door,<br>A story waiting to be known.<br>I carried it across the floor;<br>Its journey was no longer mine alone[cite: 1].</p></div><div class=\"question\" data-id=\"q17\" data-answer=\"0\" data-why=\"Both texts center on book sharing forging connections and new journeys[cite: 1].\"><span class=\"badge\">Task Q17 (+10 XP)</span><h3>Which theme is supported by BOTH logs[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q17\" value=\"0\"> Exchanging books connects readers and unlocks new opportunities[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q17\" value=\"1\"> Giving books away destroys value[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q17\" value=\"2\"> Only adventure novels hold worth[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q17\" value=\"3\"> All readers select identical titles[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><label class=\"writing\">SIDE-QUEST (+25 XP): Draft a 5-7 sentence explanatory paragraph on how both texts depict sharing books[cite: 1]. Include paraphrased details from Text A & B[cite: 1].<textarea id=\"d2apply\" rows=\"4\" placeholder=\"Write transmission...\"></textarea></label>"
+  },
+  {
+    "title": "M2 • Boss Fight",
+    "body": "<h2>BOSS FIGHT: Mission 2 Data Log</h2><div class=\"callout\"><b>Recap Protocol:</b><br>Purpose + Audience drive writing structure[cite: 1].<br>Paraphrase = original wording + intact meaning[cite: 1].</div><label class=\"writing\">BOSS QUEST: Select ONE draft sentence needing upgrade[cite: 1]. Transmit a revised, polished version and justify your structural changes[cite: 1].<textarea id=\"d2exit\" rows=\"4\" placeholder=\"Write your exit submission...\"></textarea></label><h2>Transmit Mission Data</h2><button class=\"action-btn dayreport\" data-day=\"2\">Generate Log 2</button><button class=\"action-btn daydownload\" data-day=\"2\">Download Log (.txt)</button><button class=\"action-btn dayprint\" data-day=\"2\">Print / Save PDF</button><div class=\"dailyreport\" id=\"dailyreport2\" aria-live=\"polite\"></div>"
+  },
+  {
+    "title": "M3 • Analytics Scan",
+    "body": "<h2>Mission 3: Analytics Hub • Directives</h2><p><b>Target Protocols:</b> 6.R.2, ELA.6.R.2.1, K12.EE.2.1[cite: 1]</p><div class=\"callout\"><b>Mission Objectives:</b><ul><li>Scan non-fiction features and establish target objectives[cite: 1].</li><li>Explain structural section contributions to complete texts[cite: 1].</li><li>Decode text features, tables, and captions[cite: 1].</li><li>Deploy evidence verification protocols[cite: 1].</li></ul></div><h2>DATA SCAN: Feature Scanners</h2><table><tr><th>Feature</th><th>Diagnostic Query</th></tr><tr><td>Title</td><td>What primary topic/theme is emphasized[cite: 1]?</td></tr><tr><td>Heading</td><td>What sub-topic focus is isolated[cite: 1]?</td></tr><tr><td>Caption</td><td>What detail clarifies visual data[cite: 1]?</td></tr><tr><td>Table</td><td>What quantitative patterns are organized[cite: 1]?</td></tr></table><div class=\"question\" data-id=\"q21\" data-answer=\"1\" data-why=\"A valid objective sets target comprehension based on preliminary feature scanning[cite: 1].\"><span class=\"badge\">Task Q21 (+10 XP)</span><h3>Which reading objective fits a preview of \"More Than a Shelf\"[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q21\" value=\"0\"> Count longest words[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q21\" value=\"1\"> Understand access problems, solutions, and data evidence[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q21\" value=\"2\"> Prove text is about furniture prices[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q21\" value=\"3\"> Skip headings[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q22\" data-answer=\"3\" data-why=\"Identifies organized data AND explains how it delivers analytic value[cite: 1].\"><span class=\"badge\">Task Q22 (+10 XP)</span><h3>Which statement provides deep analysis of a text feature[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q22\" value=\"0\"> The heading is bold[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q22\" value=\"1\"> The table has rows[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q22\" value=\"2\"> Caption is under an image[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q22\" value=\"3\"> The table organizes weekly participation, helping readers observe changes over time[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div>"
+  },
+  {
+    "title": "M3 • System Analysis",
+    "body": "<h2>DATA HUB: More Than a Shelf</h2><div class=\"passage\"><h4>An Access Problem</h4><p><b>[1]</b> A school reading club wanted students to access preferred books[cite: 1]. Some had finished home collections but lacked public library transport[cite: 1]. The club proposed an exchange[cite: 1].</p><h4>A Shared System</h4><p><b>[2]</b> Volunteers set up a hallway cabinet[cite: 1]. Students could donate and choose one title weekly[cite: 1]. Labeled sections organized genres[cite: 1].</p><p><b>[3]</b> Two volunteers logged participation counts and student book requests, adjusting inventory accordingly[cite: 1].</p><h4>Learning from the Record</h4><p><b>[4]</b> Over three weeks, weekly participation rose[cite: 1]. However, records did not prove whether students finished or enjoyed books[cite: 1].</p><table><tr><th>Week</th><th>Student Selectors</th></tr><tr><td>1</td><td>18</td></tr><tr><td>2</td><td>24</td></tr><tr><td>3</td><td>31</td></tr></table><p class=\"muted\">*Note: Counts represent total selections per week, not unique students[cite: 1].</p></div><div class=\"question\" data-id=\"q24\" data-answer=\"0\" data-why=\"Establishes core necessity motivating system setup[cite: 1].\"><span class=\"badge\">Task Q24 (+10 XP)</span><h3>What is the primary contribution of “An Access Problem”[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q24\" value=\"0\"> It establishes the need motivating the swap system[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q24\" value=\"1\"> It proves students dislike reading[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q24\" value=\"2\"> It details cabinet carpentry[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q24\" value=\"3\"> Repeats table data[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q27\" data-answer=\"2\" data-why=\"The table explicitly records weekly participant increases from 18 to 31[cite: 1].\"><span class=\"badge\">Task Q27 (+10 XP)</span><h3>Which conclusion is DIRECTLY supported by table data[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q27\" value=\"0\"> Exactly 73 unique students joined[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q27\" value=\"1\"> All students finished selected titles[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q27\" value=\"2\"> Weekly participation increased from 18 to 31 students[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q27\" value=\"3\"> Reading scores improved 13 points[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div>"
+  },
+  {
+    "title": "M3 • Data Verification",
+    "body": "<h2>SOLO MISSION: Evidence Audit</h2><div class=\"question\" data-id=\"q28\" data-answer=\"0,1\" data-why=\"Both actions demonstrate active system adjustments driven by user feedback[cite: 1].\"><span class=\"badge\">Task Q28 (Select 2) (+10 XP)</span><h3>Which TWO details prove the exchange adapts to student needs[cite: 1]?</h3><label class=\"option\"><input type=\"checkbox\" name=\"q28\" value=\"0\"> Requesting mysteries after student requests[cite: 1].</label><label class=\"option\"><input type=\"checkbox\" name=\"q28\" value=\"1\"> Planning surveys to discover wanted genres[cite: 1].</label><label class=\"option\"><input type=\"checkbox\" name=\"q28\" value=\"2\"> The cabinet size[cite: 1].</label><label class=\"option\"><input type=\"checkbox\" name=\"q28\" value=\"3\"> Initial count of 18[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><div class=\"question\" data-id=\"q30\" data-answer=\"1\" data-why=\"Synthesizes access, management, and responsiveness into a core central idea[cite: 1].\"><span class=\"badge\">Task Q30 (+10 XP)</span><h3>Which sentence best expresses the central idea of the article[cite: 1]?</h3><label class=\"option\"><input type=\"radio\" name=\"q30\" value=\"0\"> Cabinets guarantee reading growth[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q30\" value=\"1\"> Effective book swaps require access, organization, maintenance, and responsiveness[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q30\" value=\"2\"> Tables matter more than paragraphs[cite: 1].</label><label class=\"option\"><input type=\"radio\" name=\"q30\" value=\"3\"> All books are mysteries[cite: 1].</label><button class=\"check\">Check Signal</button><p class=\"feedback\" aria-live=\"polite\"></p></div><label class=\"writing\">SIDE-QUEST (+25 XP): Explain how the table aids reader understanding[cite: 1]. State ONE supported claim and ONE unsupported claim using data & notes[cite: 1].<textarea id=\"d3apply\" rows=\"3\" placeholder=\"Write transmission...\"></textarea></label>"
+  },
+  {
+    "title": "M3 • Campaign Finale",
+    "body": "<h2>CAMPAIGN FINALE: Full System Synthesis</h2><div class=\"callout\"><b>Toolkit Alignment:</b><br>Mission 1: Codebreaker Directives & Root Scanners[cite: 1].<br>Mission 2: Archive Writing, Paraphrase Shields, Dialogue Protocols[cite: 1].<br>Mission 3: Structural Analysis, Table Decoders, Evidence Limits[cite: 1].</div><label class=\"writing\">FINAL BOSS QUEST: Explain how all three campaign missions connect[cite: 1]. What is your primary protocol when encountering complex text[cite: 1]?<textarea id=\"d3exit\" rows=\"4\" placeholder=\"Transmit final campaign exit ticket...\"></textarea></label><h2>Transmit Final Mission Data</h2><button class=\"action-btn dayreport\" data-day=\"3\">Generate Log 3</button><button class=\"action-btn daydownload\" data-day=\"3\">Download Log (.txt)</button><button class=\"action-btn dayprint\" data-day=\"3\">Print / Save PDF</button><div class=\"dailyreport\" id=\"dailyreport3\" aria-live=\"polite\"></div><h2>Full Campaign Log</h2><button id=\"reportBtn\" class=\"action-btn\">Generate Full Campaign Dossier</button><button id=\"downloadBtn\" class=\"action-btn\">Download Dossier (.txt)</button><button id=\"printBtn\" class=\"action-btn\">Print Full Dossier PDF</button><div id=\"report\" aria-live=\"polite\"></div>"
+  }
+];
+
+// GAME STATE MANAGEMENT
+let page = 0, answers = {}, checks = {}, fields = {}, seconds = 0, xp = 0;
+const KEY = 'operation_signal_lore_v2';
+
+try {
+  const s = JSON.parse(localStorage.getItem(KEY) || 'null');
+  if (s) {
+    page = s.page || 0;
+    answers = s.answers || {};
+    checks = s.checks || {};
+    fields = s.fields || {};
+    seconds = s.seconds || 0;
+  }
+} catch(e){}
+
+function save() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify({ page, answers, checks, fields, seconds }));
+  } catch(e){}
+  updateHUD();
+}
+
+function calculateXP() {
+  let earnedXP = 0;
+  // Calculate checked correct questions (10 XP each)
+  Object.keys(checks).forEach(id => {
+    if (checks[id] && checks[id].correct) earnedXP += 10;
+  });
+  // Calculate filled writing fields (25 XP each)
+  const writingIds = ["d1guided", "d1apply", "d1exit", "d2guided", "d2apply", "d2exit", "d3apply", "d3exit"];
+  writingIds.forEach(id => {
+    if (fields[id] && fields[id].trim().length > 10) earnedXP += 25;
+  });
+  return earnedXP;
+}
+
+function updateHUD() {
+  xp = calculateXP();
+  document.getElementById('xp-display').textContent = xp;
+  
+  // Calculate Level & Rank
+  let rank = "Cadet";
+  let badges = "🛡️";
+  if (xp >= 50 && xp < 120) { rank = "Decrypter"; badges = "🛡️ 🔍"; }
+  else if (xp >= 120 && xp < 200) { rank = "Archivist"; badges = "🛡️ 🔍 📜"; }
+  else if (xp >= 200) { rank = "Master Operative"; badges = "🛡️ 🔍 📜 ⚡"; }
+  
+  document.getElementById('rank-display').textContent = rank;
+  document.getElementById('badge-display').textContent = badges;
+
+  // XP Progress fill
+  const maxXP = 300;
+  const fillPct = Math.min(100, Math.floor((xp / maxXP) * 100));
+  document.getElementById('xp-bar').style.width = fillPct + '%';
+}
+
+function capture() {
+  document.querySelectorAll('#panel input[type=radio], #panel input[type=checkbox]').forEach(el => {
+    if (!answers[el.name]) answers[el.name] = [];
+  });
+  document.querySelectorAll('.question').forEach(el => {
+    answers[el.dataset.id] = [...el.querySelectorAll('input:checked')].map(x => +x.value);
+  });
+  document.querySelectorAll('#panel textarea, #student').forEach(el => {
+    fields[el.id] = el.value;
+  });
+  save();
+}
+
+function render() {
+  document.getElementById('panel').innerHTML = '<span class="badge">Sector ' + (page + 1) + ' of 12</span>' + sections[page].body;
+  
+  // Render sub-navigation
+  const startIdx = Math.floor(page / 4) * 4;
+  document.getElementById('nav').innerHTML = sections.map((s, i) => {
+    if (i >= startIdx && i < startIdx + 4) {
+      return '<button class="' + (i === page ? 'current' : '') + '" data-page="' + i + '">' + (i + 1) + '. ' + s.title + '</button>';
+    }
+    return '';
+  }).join('');
+
+  // Update Day Picker buttons
+  document.querySelectorAll('.daypicker button').forEach((btn, idx) => {
+    const btnStart = +btn.dataset.start;
+    btn.classList.toggle('active', page >= btnStart && page < btnStart + 4);
+  });
+
+  document.getElementById('back').disabled = page === 0;
+  document.getElementById('next').disabled = page === 11;
+
+  // Restore checks & text
+  document.querySelectorAll('#panel input[type=radio], #panel input[type=checkbox]').forEach(el => {
+    el.checked = (answers[el.name] || []).includes(+el.value);
+  });
+  document.querySelectorAll('#panel textarea, #student').forEach(el => {
+    el.value = fields[el.id] || '';
+  });
+  document.querySelectorAll('.question').forEach(el => {
+    if (checks[el.dataset.id]) showFeedback(el);
+  });
+
+  save();
+}
+
+function showFeedback(el) {
+  const c = checks[el.dataset.id];
+  const f = el.querySelector('.feedback');
+  if (!f) return;
+  f.style.display = 'block';
+  if (c.correct) {
+    f.className = 'feedback correct-fb';
+    f.textContent = '⚡ SIGNAL VERIFIED. ' + el.dataset.why;
+  } else {
+    f.className = 'feedback incorrect-fb';
+    f.textContent = '❌ SIGNAL INTERRUPTED. ' + el.dataset.why + ' Valid choice(s): ' + 
+      el.dataset.answer.split(',').map(v => el.querySelector('input[value="' + v + '"]').parentElement.textContent.trim()).join(' | ');
+  }
+}
+
+// EVENT LISTENERS
+document.addEventListener('input', e => {
+  if (e.target.closest('#panel')) {
+    if (e.target.name) {
+      delete checks[e.target.name];
+      const qEl = e.target.closest('.question');
+      if (qEl) {
+        const f = qEl.querySelector('.feedback');
+        if (f) f.style.display = 'none';
+      }
+    }
+    capture();
+  }
+});
+
+document.addEventListener('click', e => {
+  if (e.target.dataset.page !== undefined) {
+    capture();
+    page = +e.target.dataset.page;
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  if (e.target.classList.contains('check')) {
+    capture();
+    let el = e.target.closest('.question');
+    let got = answers[el.dataset.id] || [];
+    let wanted = el.dataset.answer.split(',').map(Number);
+    
+    const fb = el.querySelector('.feedback');
+    if (!got.length) {
+      fb.style.display = 'block';
+      fb.className = 'feedback incorrect-fb';
+      fb.textContent = '⚠️ Select an option before running verification.';
+      return;
+    }
+
+    const isCorrect = got.length === wanted.length && wanted.every(v => got.includes(v));
+    checks[el.dataset.id] = { correct: isCorrect };
+    
+    if (isCorrect) playSound('correct');
+    else playSound('incorrect');
+
+    showFeedback(el);
+    save();
+  }
+
+  if (e.target.id === 'reportBtn') makeReport();
+  if (e.target.id === 'printBtn') { makeReport(); window.print(); }
+  if (e.target.id === 'downloadBtn') {
+    const txt = makeReport();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' }));
+    a.download = 'Operation-Signal-Lore-Campaign-Dossier.txt';
+    a.click();
+  }
+});
+
+document.getElementById('back').onclick = () => { capture(); page--; render(); window.scrollTo(0,0); };
+document.getElementById('next').onclick = () => { capture(); page++; render(); window.scrollTo(0,0); };
+
+function makeReport() {
+  capture();
+  const ids = Array.from({ length: 30 }, (_, i) => 'q' + (i + 1));
+  const written = ["d1guided", "d1apply", "d1exit", "d2guided", "d2apply", "d2exit", "d3apply", "d3exit"];
+  const done = ids.filter(id => checks[id]).length;
+  const correct = ids.filter(id => checks[id]?.correct).length;
+  const w = written.filter(id => (fields[id] || '').trim()).length;
+  
+  let t = 'OPERATION: SIGNAL & LORE • CAMPAIGN DOSSIER\n';
+  t += 'Operative Codename: ' + (fields.student || '[Unregistered Operative]') + '\n';
+  t += 'Earned XP: ' + xp + ' | Rank: ' + document.getElementById('rank-display').textContent + '\n';
+  t += 'Timestamp: ' + new Date().toLocaleString() + '\n';
+  t += 'Practice Checked: ' + done + '/30 | Accuracy: ' + correct + '/30\n';
+  t += 'Written Submissions: ' + w + '/8 completed\n';
+  t += '--------------------------------------------------\n';
+  
+  written.forEach(id => {
+    t += '\nTRANSMISSION [' + id.toUpperCase() + ']:\n' + (fields[id] || '[No transmission recorded]');
+  });
+
+  document.getElementById('report').textContent = t;
+  return t;
+}
+
+// DAILY REPORTING & NAVIGATION
+const dayFields = [
+  ["d1guided", "d1apply", "d1exit"],
+  ["d2guided", "d2apply", "d2exit"],
+  ["d3apply", "d3exit"]
+];
+
+function dayReport(day) {
+  capture();
+  const written = dayFields[day - 1];
+  const w = written.filter(id => (fields[id] || '').trim()).length;
+  let t = 'MISSION ' + day + ' LOG • SIGNAL & LORE\n';
+  t += 'Operative: ' + (fields.student || '[Unregistered]') + '\n';
+  t += 'Timestamp: ' + new Date().toLocaleString() + '\n';
+  t += 'Written Tasks: ' + w + '/' + written.length + '\n';
+  written.forEach(id => {
+    t += '\n' + id.toUpperCase() + ':\n' + (fields[id] || '[Missing]');
+  });
+  document.getElementById('dailyreport' + day).textContent = t;
+  return t;
+}
+
+document.addEventListener('click', e => {
+  if (e.target.dataset.start !== undefined) {
+    capture();
+    page = +e.target.dataset.start;
+    render();
+    window.scrollTo(0, 0);
+  }
+  if (e.target.classList.contains('dayreport')) dayReport(+e.target.dataset.day);
+  if (e.target.classList.contains('daydownload')) {
+    const day = +e.target.dataset.day;
+    const txt = dayReport(day);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' }));
+    a.download = 'Mission-' + day + '-Log.txt';
+    a.click();
+  }
+  if (e.target.classList.contains('dayprint')) {
+    const day = +e.target.dataset.day;
+    dayReport(day);
+    window.print();
+  }
+});
+
+setInterval(() => {
+  if (!document.hidden) {
+    seconds++;
+    if (seconds % 10 === 0) save();
+  }
+}, 1000);
+
+render();
+</script>
+</body>
+</html>
